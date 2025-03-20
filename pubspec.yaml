@@ -1,6 +1,6 @@
 name: paypal_native_checkout
 description: A Flutter package for integrating PayPal native checkout.
-version: 1.0.4
+version: 1.0.5
 homepage: https://github.com/sammrafi/paypal_native_checkout
 
 environment:

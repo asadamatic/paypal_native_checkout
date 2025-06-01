@@ -1,5 +1,8 @@
 package com.sammrafi.paypal_native_checkout;
 
+import android.app.Activity;
+import android.content.Context;
+
 import android.app.Application;
 import android.util.Log;
 import android.widget.Toast;
@@ -49,6 +52,9 @@ import org.json.JSONException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+
+
 /** PaypalNativeCheckoutPlugin */
 public class PaypalNativeCheckoutPlugin extends FlutterRegistrarResponder
         implements FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -57,7 +63,8 @@ public class PaypalNativeCheckoutPlugin extends FlutterRegistrarResponder
     private Application application;
     private CheckoutConfigStore checkoutConfigStore;
     private PayPalCallBackHelper payPalCallBackHelper;
-
+    private Activity activity;
+    private boolean isPayPalDialogShowing = false;
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "paypal_native_checkout");
@@ -87,7 +94,16 @@ public class PaypalNativeCheckoutPlugin extends FlutterRegistrarResponder
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         application = binding.getActivity().getApplication();
+        activity = binding.getActivity(); // Store the activity reference
         initialisePaypalConfig();
+    
+        // Add back button listener
+        binding.addOnUserLeaveHintListener(() -> {
+            if (isPayPalDialogShowing) {
+                payPalCallBackHelper.onPayPalCancel();
+                isPayPalDialogShowing = false;
+            }
+        });
     }
 
     @Override
@@ -162,6 +178,8 @@ public class PaypalNativeCheckoutPlugin extends FlutterRegistrarResponder
         if (!initialisedPaypalConfig) {
             initialisePaypalConfig();
         }
+        
+        isPayPalDialogShowing = true;
 
         String purchaseUnitsStr = call.argument("purchaseUnits");
         String userActionStr = call.argument("userAction");
